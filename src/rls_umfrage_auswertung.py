@@ -38,23 +38,23 @@ group_need_to_catch_up = [17, 18, 19, 20, 23, 24, 25, 28, 29, 30, 31, 32, 33]
 
 
 def main_preprocessing_codebook():
-    codebook = pd.read_csv(
+    codebook_csv = pd.read_csv(
         f"{results}/{codebook_file}{suffix}", delimiter=";", encoding="ANSI", na_values=None
     )
-    codebook = codebook.replace({np.nan: None})
+    codebook_csv = codebook_csv.replace({np.nan: None})
 
     answer_column_names = {}
 
     numbers = [i for i in range(4, 41)]
 
-    for row in codebook.index:
+    for row in codebook_csv.index:
         try:
-            value = float(codebook.loc[row, A])
-            question_number = int(codebook.loc[row, A])
-            two_below = codebook.loc[row + 2, A]
+            value = float(codebook_csv.loc[row, A])
+            question_number = int(codebook_csv.loc[row, A])
+            two_below = codebook_csv.loc[row + 2, A]
             if isinstance(two_below, str):
-                logging.debug(f"{question_number}: {codebook.loc[row + 2, A]}")
-                row, got_codebook = get_codebook_for_question(codebook,
+                logging.debug(f"{question_number}: {codebook_csv.loc[row + 2, A]}")
+                row, got_codebook = get_codebook_for_question(codebook_csv,
                     answer_column_names, question_number, row
                 )
                 if got_codebook is True:
