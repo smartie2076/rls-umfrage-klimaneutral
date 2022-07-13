@@ -40,7 +40,10 @@ group_need_to_catch_up = [17, 18, 19, 20, 23, 24, 25, 28, 29, 30, 31, 32, 33]
 
 def main_preprocessing_codebook():
     codebook_csv = pd.read_csv(
-        f"{results}/{codebook_file}{suffix}", delimiter=";", encoding="ANSI", na_values=None
+        f"{results}/{codebook_file}{suffix}",
+        delimiter=";",
+        encoding="ANSI",
+        na_values=None,
     )
     codebook_csv = codebook_csv.replace({np.nan: None})
 
@@ -55,8 +58,8 @@ def main_preprocessing_codebook():
             two_below = codebook_csv.loc[row + 2, A]
             if isinstance(two_below, str):
                 logging.debug(f"{question_number}: {codebook_csv.loc[row + 2, A]}")
-                row, got_codebook = get_codebook_for_question(codebook_csv,
-                    codebook_dict, question_number, row
+                row, got_codebook = get_codebook_for_question(
+                    codebook_csv, codebook_dict, question_number, row
                 )
                 if got_codebook is True:
                     numbers.remove(question_number)
@@ -69,6 +72,7 @@ def main_preprocessing_codebook():
 
     return codebook_dict
 
+
 def evaluating_with_codebook(codebook_dict):
     for group in surveys.keys():
         numbers = [i for i in range(4, 41)]
@@ -79,10 +83,20 @@ def evaluating_with_codebook(codebook_dict):
 
         numbers = create_wordclouds(codebook_dict, survey_data, group, numbers)
 
-        for question_number in group_yes_rather_yes_rather_no_no + group_need_to_catch_up + [13, 14, 15]:
-            for subquestion_number in codebook_dict[question_number][subquestion].keys():
+        for question_number in (
+            group_yes_rather_yes_rather_no_no + group_need_to_catch_up + [13, 14, 15]
+        ):
+            for subquestion_number in codebook_dict[question_number][
+                subquestion
+            ].keys():
                 try:
-                    values = survey_data[[codebook_dict[question_number][subquestion][subquestion_number][columns]]]
+                    values = survey_data[
+                        [
+                            codebook_dict[question_number][subquestion][
+                                subquestion_number
+                            ][columns]
+                        ]
+                    ]
                     message_data_received(codebook_dict, question_number)
                     numbers.remove(question_number)
                 except:
@@ -93,23 +107,27 @@ def evaluating_with_codebook(codebook_dict):
             message_data_received(codebook_dict, question_number)
             numbers.remove(question_number)
 
-        logging.info(f"Following questions for {surveys[group]} are missing data evaluations: {numbers}.")
+        logging.info(
+            f"Following questions for {surveys[group]} are missing data evaluations: {numbers}."
+        )
 
     return
 
+
 from wordcloud import WordCloud, STOPWORDS
+
 
 def plot_wordcloud(title, text):
     # Compare also: https://www.python-lernen.de/wordcloud-erstellen-python.htm
     liste_der_unerwuenschten_woerter = [
-        'und',
-        'der',
-        'die',
-        'das',
-        '99',
+        "und",
+        "der",
+        "die",
+        "das",
+        "99",
         "'",
-        'oder',
-        'aber'
+        "oder",
+        "aber",
     ]
 
     STOPWORDS.update(liste_der_unerwuenschten_woerter)
@@ -121,12 +139,15 @@ def plot_wordcloud(title, text):
     plt.show()
     return
 
+
 def create_wordclouds(codebook_dict, survey_data, survey_group, numbers=[]):
     for question_number in group_three_word_entries:
-        string_answers = ''
+        string_answers = ""
         for field in range(0, len(codebook_dict[question_number][columns])):
-            list_answers = survey_data[[codebook_dict[question_number][columns][field]]].values
-            string_answers += ''.join(str(x) for x in list_answers)
+            list_answers = survey_data[
+                [codebook_dict[question_number][columns][field]]
+            ].values
+            string_answers += "".join(str(x) for x in list_answers)
 
         title = f"{survey_group}:\n {codebook_dict[question_number][question][:-20]}"
         plot_wordcloud(title, string_answers)
@@ -136,50 +157,72 @@ def create_wordclouds(codebook_dict, survey_data, survey_group, numbers=[]):
             numbers.remove(question_number)
     return numbers
 
+
 def get_codebook_for_question(codebook, codebook_dict, question_number, row):
     logging.debug(f"Checking for codebook to question {question_number}.")
     got_codebook = True
     if question_number in group_three_word_entries:
         row = three_word_entries(codebook, codebook_dict, question_number, row)
     elif question_number in group_yes_rather_yes_rather_no_no:
-        row = multiple_choice(codebook, codebook_dict, question_number, row, multiple_choice_options=4)
-        #row = yes_rather_yes_rather_no_no(codebook_dict, question_number, row)
+        row = multiple_choice(
+            codebook, codebook_dict, question_number, row, multiple_choice_options=4
+        )
+        # row = yes_rather_yes_rather_no_no(codebook_dict, question_number, row)
     elif question_number in group_filter_follow_up_question:
         row = filter_follow_up_question(codebook, codebook_dict, question_number, row)
     elif question_number in group_need_to_catch_up:
-        row = multiple_choice(codebook, codebook_dict, question_number, row, multiple_choice_options = 8)
+        row = multiple_choice(
+            codebook, codebook_dict, question_number, row, multiple_choice_options=8
+        )
     elif question_number == 12:
         row = single_subquestions(codebook, codebook_dict, question_number, row)
     elif question_number == 13:
-        row = multiple_choice(codebook, codebook_dict, question_number, row, multiple_choice_options = 6)
+        row = multiple_choice(
+            codebook, codebook_dict, question_number, row, multiple_choice_options=6
+        )
     elif question_number == 14:
-        row = multiple_choice(codebook, codebook_dict, question_number, row, multiple_choice_options = 5)
+        row = multiple_choice(
+            codebook, codebook_dict, question_number, row, multiple_choice_options=5
+        )
     elif question_number == 15:
         row += 7
-        row = multiple_choice(codebook, codebook_dict, question_number, row, multiple_choice_options= 5)
+        row = multiple_choice(
+            codebook, codebook_dict, question_number, row, multiple_choice_options=5
+        )
     elif question_number == 38:
-        row = multiple_choice(codebook, codebook_dict, question_number, row, multiple_choice_options= 7)
+        row = multiple_choice(
+            codebook, codebook_dict, question_number, row, multiple_choice_options=7
+        )
     elif question_number == 40:
         row_buffer = row
-        row = multiple_choice(codebook, codebook_dict, question_number, row, multiple_choice_options = 6)
+        row = multiple_choice(
+            codebook, codebook_dict, question_number, row, multiple_choice_options=6
+        )
         column_buffer = codebook_dict[question_number][subquestion][1][columns]
         question_buffer = codebook_dict[question_number][subquestion][1][question]
 
-        codebook_dict[question_number][subquestion].update({2: {columns: column_buffer,
-                                                                     question: question_buffer}})
+        codebook_dict[question_number][subquestion].update(
+            {2: {columns: column_buffer, question: question_buffer}}
+        )
 
         row = row_buffer + 12
 
-        codebook_dict[question_number][subquestion].update({3: {columns: codebook.loc[row+2,A],
-                                                                  question: codebook.loc[row+1,A]}})
-        logging.info(f"Codebook for question {question_number} and the 3 subquestions recieved.")
+        codebook_dict[question_number][subquestion].update(
+            {3: {columns: codebook.loc[row + 2, A], question: codebook.loc[row + 1, A]}}
+        )
+        logging.info(
+            f"Codebook for question {question_number} and the 3 subquestions recieved."
+        )
     elif question_number == 41:
-        logging.info(f"Question {question_number} is related to data rights and has to be evaluated seperately.")
+        logging.info(
+            f"Question {question_number} is related to data rights and has to be evaluated seperately."
+        )
     else:
         got_codebook = False
         logging.warning(f"Codebook for question {question_number} not found.")
 
     return row, got_codebook
+
 
 def single_subquestions(codebook, codebook_dict, question_number, row):
     codebook_dict.update(
@@ -191,11 +234,13 @@ def single_subquestions(codebook, codebook_dict, question_number, row):
     while end_of_aspects is False:
         number_of_subquestions += 1
         codebook_dict[question_number][subquestion].update(
-            {number_of_subquestions: {
-                question: codebook.loc[row + 0, A],
-                columns: [codebook.loc[row + 1, A], codebook.loc[row + 5, A]],
-                m_options: ["Value", "1: Keine Angabe"],
-            }}
+            {
+                number_of_subquestions: {
+                    question: codebook.loc[row + 0, A],
+                    columns: [codebook.loc[row + 1, A], codebook.loc[row + 5, A]],
+                    m_options: ["Value", "1: Keine Angabe"],
+                }
+            }
         )
         row += 9
         if "v_" not in codebook.loc[row + 1, A]:
@@ -206,7 +251,10 @@ def single_subquestions(codebook, codebook_dict, question_number, row):
     )
     return
 
-def multiple_choice(codebook, codebook_dict, question_number, row, multiple_choice_options):
+
+def multiple_choice(
+    codebook, codebook_dict, question_number, row, multiple_choice_options
+):
     logging.debug(f"Decoding question {question_number}")
     codebook_dict.update(
         {question_number: {question: codebook.loc[row + 2, A], subquestion: {}}}
@@ -217,25 +265,35 @@ def multiple_choice(codebook, codebook_dict, question_number, row, multiple_choi
     while end_of_aspects is False:
         number_of_subquestions += 1
         codebook_dict[question_number][subquestion].update(
-            {number_of_subquestions: {
-                question: codebook.loc[row + 1, D],
-                columns: codebook.loc[row + 1, A],
-                m_options: {
-                },
-            }}
+            {
+                number_of_subquestions: {
+                    question: codebook.loc[row + 1, D],
+                    columns: codebook.loc[row + 1, A],
+                    m_options: {},
+                }
+            }
         )
-        for option_number in range(1,multiple_choice_options+1):
-            codebook_dict[question_number][subquestion][number_of_subquestions][m_options].update({codebook.loc[row + 1 + option_number, C]: codebook.loc[row + 1+ option_number, D]})
+        for option_number in range(1, multiple_choice_options + 1):
+            codebook_dict[question_number][subquestion][number_of_subquestions][
+                m_options
+            ].update(
+                {
+                    codebook.loc[row + 1 + option_number, C]: codebook.loc[
+                        row + 1 + option_number, D
+                    ]
+                }
+            )
 
         row += option_number + 1
 
-        if "v_" not in codebook.loc[row + 1, A] or question_number==40:
+        if "v_" not in codebook.loc[row + 1, A] or question_number == 40:
             end_of_aspects = True
 
     logging.info(
         f"Codebook to question {question_number} and its {number_of_subquestions} subquestions parsed: Follow up question with text"
     )
     return row
+
 
 def filter_follow_up_question(codebook, codebook_dict, question_number, row):
     # Sadly, the codebook is not consistent here.
@@ -256,12 +314,13 @@ def filter_follow_up_question(codebook, codebook_dict, question_number, row):
 
     codebook_dict.update(
         {question_number: {columns: column, question: question_string}}
-        )
+    )
 
     logging.info(
         f"Codebook to question {question_number} parsed: Follow up question with text"
     )
     return row
+
 
 def three_word_entries(codebook, codebook_dict, question_number, row):
     codebook_dict.update(
@@ -281,6 +340,7 @@ def three_word_entries(codebook, codebook_dict, question_number, row):
         f"Codebook to question {question_number} parsed: Composed of three word entries"
     )
     return row
+
 
 def message_data_received(codebook_dict, question_number):
     logging.debug(
