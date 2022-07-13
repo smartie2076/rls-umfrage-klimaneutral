@@ -72,13 +72,13 @@ def evaluating_with_codebook(codebook_dict):
     for group in surveys.keys():
         numbers = [i for i in range(4, 41)]
 
-    data = pd.read_csv(
+    survey_data = pd.read_csv(
         f"{results}/{surveys[group]}{suffix}", delimiter=";", header=2
     )
 
     for question_number in group_three_word_entries:
         for field in range(0, len(codebook_dict[question_number][columns])):
-            string = data[[codebook_dict[question_number][columns][field]]]
+            string = survey_data[[codebook_dict[question_number][columns][field]]]
 
         message_data_received(codebook_dict, question_number)
         numbers.remove(question_number)
@@ -86,14 +86,14 @@ def evaluating_with_codebook(codebook_dict):
     for question_number in group_yes_rather_yes_rather_no_no + group_need_to_catch_up + [13, 14, 15]:
         for subquestion_number in codebook_dict[question_number][subquestion].keys():
             try:
-                values = data[[codebook_dict[question_number][subquestion][subquestion_number][columns]]]
+                values = survey_data[[codebook_dict[question_number][subquestion][subquestion_number][columns]]]
                 message_data_received(codebook_dict, question_number)
                 numbers.remove(question_number)
             except:
                 logging.warning(f"Column {columns} not in {surveys[group]}")
 
     for question_number in group_filter_follow_up_question:
-        string = data[[codebook_dict[question_number][columns]]]
+        string = survey_data[[codebook_dict[question_number][columns]]]
         message_data_received(codebook_dict, question_number)
         numbers.remove(question_number)
 
