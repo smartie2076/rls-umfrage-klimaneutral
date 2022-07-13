@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import logging
 import pprint
+import matplotlib.pyplot as plt
 
 logging = logging.getLogger(__name__)
 
@@ -72,34 +73,68 @@ def evaluating_with_codebook(codebook_dict):
     for group in surveys.keys():
         numbers = [i for i in range(4, 41)]
 
-    survey_data = pd.read_csv(
-        f"{results}/{surveys[group]}{suffix}", delimiter=";", header=2
-    )
+        survey_data = pd.read_csv(
+            f"{results}/{surveys[group]}{suffix}", delimiter=";", header=2
+        )
 
-    for question_number in group_three_word_entries:
-        for field in range(0, len(codebook_dict[question_number][columns])):
-            string = survey_data[[codebook_dict[question_number][columns][field]]]
+        numbers = create_wordclouds(codebook_dict, survey_data, group, numbers)
 
-        message_data_received(codebook_dict, question_number)
-        numbers.remove(question_number)
+        for question_number in group_yes_rather_yes_rather_no_no + group_need_to_catch_up + [13, 14, 15]:
+            for subquestion_number in codebook_dict[question_number][subquestion].keys():
+                try:
+                    values = survey_data[[codebook_dict[question_number][subquestion][subquestion_number][columns]]]
+                    message_data_received(codebook_dict, question_number)
+                    numbers.remove(question_number)
+                except:
+                    logging.warning(f"Column {columns} not in {surveys[group]}")
 
-    for question_number in group_yes_rather_yes_rather_no_no + group_need_to_catch_up + [13, 14, 15]:
-        for subquestion_number in codebook_dict[question_number][subquestion].keys():
-            try:
-                values = survey_data[[codebook_dict[question_number][subquestion][subquestion_number][columns]]]
-                message_data_received(codebook_dict, question_number)
-                numbers.remove(question_number)
-            except:
-                logging.warning(f"Column {columns} not in {surveys[group]}")
+        for question_number in group_filter_follow_up_question:
+            string = survey_data[[codebook_dict[question_number][columns]]]
+            message_data_received(codebook_dict, question_number)
+            numbers.remove(question_number)
 
-    for question_number in group_filter_follow_up_question:
-        string = survey_data[[codebook_dict[question_number][columns]]]
-        message_data_received(codebook_dict, question_number)
-        numbers.remove(question_number)
-
-    logging.info(f"Following questions for {surveys[group]} are missing data evaluations: {numbers}.")
+        logging.info(f"Following questions for {surveys[group]} are missing data evaluations: {numbers}.")
 
     return
+
+from wordcloud import WordCloud, STOPWORDS
+
+def plot_wordcloud(title, text):
+    # Compare also: https://www.python-lernen.de/wordcloud-erstellen-python.htm
+    liste_der_unerwuenschten_woerter = [
+        'und',
+        'der',
+        'die',
+        'das',
+        '99',
+        "'",
+        'oder',
+        'aber'
+    ]
+
+    STOPWORDS.update(liste_der_unerwuenschten_woerter)
+    wordcloud = WordCloud(background_color="white", max_font_size=40).generate(text)
+    plt.figure()
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    plt.title(title)
+    plt.show()
+    return
+
+def create_wordclouds(codebook_dict, survey_data, survey_group, numbers=[]):
+    for question_number in group_three_word_entries:
+        string_answers = ''
+        for field in range(0, len(codebook_dict[question_number][columns])):
+            list_answers = survey_data[[codebook_dict[question_number][columns][field]]].values
+            string_answers += ''.join(str(x) for x in list_answers)
+
+        title = f"{survey_group}:\n {codebook_dict[question_number][question][:-20]}"
+        plot_wordcloud(title, string_answers)
+
+        message_data_received(codebook_dict, question_number)
+        if numbers != []:
+            numbers.remove(question_number)
+    return numbers
 
 def get_codebook_for_question(codebook, codebook_dict, question_number, row):
     logging.debug(f"Checking for codebook to question {question_number}.")
