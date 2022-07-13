@@ -3,7 +3,7 @@ import numpy as np
 import logging
 import pprint
 
-logging.basicConfig(level=logging.INFO)
+logging = logging.getLogger(__name__)
 
 results = "./data"
 
@@ -27,13 +27,6 @@ question = "question"
 subquestion = "subquestion"
 m_options = "multiple-choice-options"
 
-codebook = pd.read_csv(
-    f"{results}/{codebook_file}{suffix}", delimiter=";", encoding="ANSI", na_values=None
-)
-codebook = codebook.replace({np.nan: None})
-
-answer_column_names = {}
-
 # Define three characteristics
 group_three_word_entries = [4, 11, 16, 21, 22, 26, 27, 34, 35]
 # Multiple choice with 4 options
@@ -43,32 +36,97 @@ group_filter_follow_up_question = [6, 8, 10, 37, 39]
 # Aufholbedarf
 group_need_to_catch_up = [17, 18, 19, 20, 23, 24, 25, 28, 29, 30, 31, 32, 33]
 
-def get_codebook_for_question(answer_column_names, question_number, row):
+
+def main_preprocessing_codebook():
+    codebook = pd.read_csv(
+        f"{results}/{codebook_file}{suffix}", delimiter=";", encoding="ANSI", na_values=None
+    )
+    codebook = codebook.replace({np.nan: None})
+
+    answer_column_names = {}
+
+    numbers = [i for i in range(4, 41)]
+
+    for row in codebook.index:
+        try:
+            value = float(codebook.loc[row, A])
+            question_number = int(codebook.loc[row, A])
+            two_below = codebook.loc[row + 2, A]
+            if isinstance(two_below, str):
+                logging.debug(f"{question_number}: {codebook.loc[row + 2, A]}")
+                row, got_codebook = get_codebook_for_question(codebook,
+                    answer_column_names, question_number, row
+                )
+                if got_codebook is True:
+                    numbers.remove(question_number)
+        except:
+            pass
+
+    logging.info(f"Following questions are not assessed: {numbers}")
+
+    pprint.pprint(answer_column_names)
+
+    return answer_column_names
+
+def evaluating_with_codebook(answer_column_names):
+    for group in surveys.keys():
+        numbers = [i for i in range(4, 41)]
+
+    data = pd.read_csv(
+        f"{results}/{surveys[group]}{suffix}", delimiter=";", header=2
+    )
+
+    for question_number in group_three_word_entries:
+        for field in range(0, len(answer_column_names[question_number][columns])):
+            string = data[[answer_column_names[question_number][columns][field]]]
+
+        message_data_received(answer_column_names, question_number)
+        numbers.remove(question_number)
+
+    for question_number in group_yes_rather_yes_rather_no_no + group_need_to_catch_up + [13, 14, 15]:
+        for subquestion_number in answer_column_names[question_number][subquestion].keys():
+            try:
+                values = data[[answer_column_names[question_number][subquestion][subquestion_number][columns]]]
+                message_data_received(answer_column_names, question_number)
+                numbers.remove(question_number)
+            except:
+                logging.warning(f"Column {columns} not in {surveys[group]}")
+
+    for question_number in group_filter_follow_up_question:
+        string = data[[answer_column_names[question_number][columns]]]
+        message_data_received(answer_column_names, question_number)
+        numbers.remove(question_number)
+
+    logging.info(f"Following questions for {surveys[group]} are missing data evaluations: {numbers}.")
+
+    return
+
+def get_codebook_for_question(codebook, answer_column_names, question_number, row):
     logging.debug(f"Checking for codebook to question {question_number}.")
     got_codebook = True
     if question_number in group_three_word_entries:
-        row = three_word_entries(answer_column_names, question_number, row)
+        row = three_word_entries(codebook, answer_column_names, question_number, row)
     elif question_number in group_yes_rather_yes_rather_no_no:
-        row = multiple_choice(answer_column_names, question_number, row, multiple_choice_options=4)
+        row = multiple_choice(codebook, answer_column_names, question_number, row, multiple_choice_options=4)
         #row = yes_rather_yes_rather_no_no(answer_column_names, question_number, row)
     elif question_number in group_filter_follow_up_question:
-        row = filter_follow_up_question(answer_column_names, question_number, row)
+        row = filter_follow_up_question(codebook, answer_column_names, question_number, row)
     elif question_number in group_need_to_catch_up:
-        row = multiple_choice(answer_column_names, question_number, row, multiple_choice_options = 8)
+        row = multiple_choice(codebook, answer_column_names, question_number, row, multiple_choice_options = 8)
     elif question_number == 12:
-        row = single_subquestions(answer_column_names, question_number, row)
+        row = single_subquestions(codebook, answer_column_names, question_number, row)
     elif question_number == 13:
-        row = multiple_choice(answer_column_names, question_number, row, multiple_choice_options = 6)
+        row = multiple_choice(codebook, answer_column_names, question_number, row, multiple_choice_options = 6)
     elif question_number == 14:
-        row = multiple_choice(answer_column_names, question_number, row, multiple_choice_options = 5)
+        row = multiple_choice(codebook, answer_column_names, question_number, row, multiple_choice_options = 5)
     elif question_number == 15:
         row += 7
-        row = multiple_choice(answer_column_names, question_number, row, multiple_choice_options= 5)
+        row = multiple_choice(codebook, answer_column_names, question_number, row, multiple_choice_options= 5)
     elif question_number == 38:
-        row = multiple_choice(answer_column_names, question_number, row, multiple_choice_options= 7)
+        row = multiple_choice(codebook, answer_column_names, question_number, row, multiple_choice_options= 7)
     elif question_number == 40:
         row_buffer = row
-        row = multiple_choice(answer_column_names, question_number, row, multiple_choice_options = 6)
+        row = multiple_choice(codebook, answer_column_names, question_number, row, multiple_choice_options = 6)
         column_buffer = answer_column_names[question_number][subquestion][1][columns]
         question_buffer = answer_column_names[question_number][subquestion][1][question]
 
@@ -88,8 +146,7 @@ def get_codebook_for_question(answer_column_names, question_number, row):
 
     return row, got_codebook
 
-
-def single_subquestions(answer_column_names, question_number, row):
+def single_subquestions(codebook, answer_column_names, question_number, row):
     answer_column_names.update(
         {question_number: {question: codebook.loc[row + 2, A], subquestion: {}}}
     )
@@ -114,8 +171,7 @@ def single_subquestions(answer_column_names, question_number, row):
     )
     return
 
-
-def multiple_choice(answer_column_names, question_number, row, multiple_choice_options):
+def multiple_choice(codebook, answer_column_names, question_number, row, multiple_choice_options):
     logging.debug(f"Decoding question {question_number}")
     answer_column_names.update(
         {question_number: {question: codebook.loc[row + 2, A], subquestion: {}}}
@@ -146,7 +202,7 @@ def multiple_choice(answer_column_names, question_number, row, multiple_choice_o
     )
     return row
 
-def filter_follow_up_question(answer_column_names, question_number, row):
+def filter_follow_up_question(codebook, answer_column_names, question_number, row):
     # Sadly, the codebook is not consistent here.
     # I think filter rules are sometimes written in a single condensed row, and sometimes over multiple lines.
 
@@ -172,7 +228,7 @@ def filter_follow_up_question(answer_column_names, question_number, row):
     )
     return row
 
-def three_word_entries(answer_column_names, question_number, row):
+def three_word_entries(codebook, answer_column_names, question_number, row):
     answer_column_names.update(
         {
             question_number: {
@@ -195,55 +251,3 @@ def message_data_received(answer_column_names, question_number):
     logging.debug(
         f"Got the data to process answers for question {question_number}: {answer_column_names[question_number][question]}"
     )
-
-
-numbers = [i for i in range(4, 41)]
-
-for row in codebook.index:
-    try:
-        value = float(codebook.loc[row, A])
-        question_number = int(codebook.loc[row, A])
-        two_below = codebook.loc[row + 2, A]
-        if isinstance(two_below, str):
-            logging.debug(f"{question_number}: {codebook.loc[row + 2, A]}")
-            row, got_codebook = get_codebook_for_question(
-                answer_column_names, question_number, row
-            )
-            if got_codebook is True:
-                numbers.remove(question_number)
-    except:
-        pass
-
-logging.info(f"Following questions are not assessed: {numbers}")
-
-logging.info(pprint.pprint(answer_column_names))
-
-for group in surveys.keys():
-    numbers = [i for i in range(4, 41)]
-
-    data = pd.read_csv(
-        f"{results}/{surveys[group]}{suffix}", delimiter=";", header=2
-    )
-
-    for question_number in group_three_word_entries:
-        for field in range(0, len(answer_column_names[question_number][columns])):
-            string = data[[answer_column_names[question_number][columns][field]]]
-
-        message_data_received(answer_column_names, question_number)
-        numbers.remove(question_number)
-
-    for question_number in group_yes_rather_yes_rather_no_no + group_need_to_catch_up + [13, 14, 15]:
-        for subquestion_number in answer_column_names[question_number][subquestion].keys():
-            try:
-                values = data[[answer_column_names[question_number][subquestion][subquestion_number][columns]]]
-                message_data_received(answer_column_names, question_number)
-                numbers.remove(question_number)
-            except:
-                logging.warning(f"Column {columns} not in {surveys[group]}")
-
-    for question_number in group_filter_follow_up_question:
-        string = data[[answer_column_names[question_number][columns]]]
-        message_data_received(answer_column_names, question_number)
-        numbers.remove(question_number)
-
-    logging.info(f"Following questions for {surveys[group]} are missing data evaluations: {numbers}.")
