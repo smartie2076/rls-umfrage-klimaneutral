@@ -118,16 +118,66 @@ from wordcloud import WordCloud, STOPWORDS
 
 
 def plot_wordcloud(title, text):
+    # Manual linting
+    replacing = {
+        "99": "",
+        "'": "",
+        "Erneuerbare Energien": "Erneuerbare",
+        "Erneuerbare Energie": "Erneuerbare",
+        "EE": "Erneuerbare",
+        "erneuerbar": "Erneuerbare",
+        "Dezentrale": "Dezentral",
+        "dezentrale": "Dezentral",
+        "fossilen": "fossile",
+        "fossiler": "fossile",
+        "keine": "kein",
+        "aller": "alle",
+        "allen": "alle",
+    }
+
+    for key in replacing.keys():
+        text = text.replace(key, replacing[key])
+
     # Compare also: https://www.python-lernen.de/wordcloud-erstellen-python.htm
     liste_der_unerwuenschten_woerter = [
         "und",
         "der",
         "die",
         "das",
-        "99",
-        "'",
         "oder",
         "aber",
+        "für",
+        "ist",
+        "auf",
+        "bei",
+        "des",
+        "eine",
+        "bis",
+        "in",
+        "mit",
+        "von",
+        "durch",
+        "aus",
+        "werden",
+        "In",
+        "Im",
+        "den",
+        "zur",
+        "als",
+        "im",
+        "zu",
+        "dass",
+        "auch",
+        "aus",
+        "vor",
+        "es",
+        "kann",
+        "sich",
+        "sein",
+        "bzw",
+        "wie",
+        "wird",
+        "welche",
     ]
 
     STOPWORDS.update(liste_der_unerwuenschten_woerter)
