@@ -72,7 +72,6 @@ def main_preprocessing_codebook():
 
     return codebook_dict
 
-
 def evaluating_with_codebook(codebook_dict):
     for group in surveys.keys():
         numbers = [i for i in range(4, 41)]
@@ -190,8 +189,8 @@ def plot_wordcloud(title, text):
     return
 
 
-def create_wordclouds(codebook_dict, survey_data, survey_group, numbers=[]):
-    for question_number in group_three_word_entries:
+def create_wordclouds(codebook_dict, survey_data, survey_group, numbers=[], question_number_list = group_three_word_entries):
+    for question_number in question_number_list:
         string_answers = ""
         for field in range(0, len(codebook_dict[question_number][columns])):
             list_answers = survey_data[
