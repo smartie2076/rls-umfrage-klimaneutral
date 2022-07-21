@@ -37,6 +37,8 @@ group_filter_follow_up_question = [6, 8, 10, 37, 39]
 # Aufholbedarf
 group_need_to_catch_up = [17, 18, 19, 20, 23, 24, 25, 28, 29, 30, 31, 32, 33]
 
+EXCLUDE_CODES = [-77, -99, -66, 0, "0", "-66", "-99", "-77"]
+
 
 def main_preprocessing_codebook():
     codebook_csv = pd.read_csv(
@@ -71,6 +73,7 @@ def main_preprocessing_codebook():
     pprint.pprint(codebook_dict)
 
     return codebook_dict
+
 
 def evaluating_with_codebook(codebook_dict):
     for group in surveys.keys():
@@ -113,124 +116,15 @@ def evaluating_with_codebook(codebook_dict):
     return
 
 
-from wordcloud import WordCloud, STOPWORDS
+from wordcloud import WordCloud
+
 
 def plot_wordcloud(title, text):
-    # Manual linting
-    replacing = {
-        "99": "",
-        "'": "",
-        "66": "",
-        "sektor": "Sektor",
-        "Sektorgekoppelt": "Sektorenkopplung",
-        "Sektorkopplung": "Sektorenkopplung",
-        "Sektoren": "Sektor",
-        "Netto": "Bilanz",
-        "regenerativ": "Regenerativ",
-        "Regenerativen": "Regenerativ",
-        "flex": "Flex",
-        "Flexbilen": "Flexibilität",
-        "Flexibel": "Flexibilität",
-        "effizient": "Effizienz",
-        "Energien": "Energie",
-        "Regenerative Energie": "Erneuerbar",
-        "emission": "Emission",
-        "Carbon": "CO2",
-        "Co2": "CO2",
-        "h2": "H2",
-        "grüner":"grün",
-        "grüne": "grün",
-        "grün": "nachhaltig",
-        "Nachkaltigkeit": "nachhaltig",
-        "Wasserstoff": "H2",
-        "Quellen": "Ressourcen",
-        "erneuerbar": "Erneuerbar",
-        "Erneuerbaren": "Erneuerbar",
-        "Erneuerbarer": "Erneuerbar",
-        "Erneuerbare": "Erneuerbar",
-        "Erneuerbar Energie": "Erneuerbar",
-        "erneuerbaren": "Erneuerbar",
-        "EE": "Erneuerbar",
-        "dezentral": "Dezentral",
-        "Dezentraler": "Dezentral",
-        "Dezentrale": "Dezentral",
-        "fossilen": "fossile",
-        "fossiler": "fossile",
-        "versorgungssicher": "Versorgungssicherheit",
-        "mehr": "viel",
-        "viele": "viel",
-        "keine": "kein",
-        "Keine": "kein",
-        "aller": "alle",
-        "allen": "alle",
-        "kein": "ohne",
-        "Kein": "ohne",
-        "frei": "ohne",
-        "Frei": "ohne",
-        "Digitale": "Digitalisierung",
-        "geringer": "wenig",
-        "gering": "wenig",
-        "nicht": "ohne",
-        "Ausstoß": "Emissionen",
-    }
-
-    for key in replacing.keys():
-        text = text.replace(key, replacing[key])
-
     # Compare also: https://www.python-lernen.de/wordcloud-erstellen-python.htm
-    liste_der_unerwuenschten_woerter = [
-        "sind",
-        "und",
-        "der",
-        "die",
-        "das",
-        "gleich"
-        "oder",
-        "aber",
-        "für",
-        "ist",
-        "auf",
-        "bei",
-        "des",
-        "eine",
-        "um",
-        "bis",
-        "in",
-        "mit",
-        "von",
-        "durch",
-        "aus",
-        "werden",
-        "In",
-        "Im",
-        "den",
-        "zur",
-        "als",
-        "im",
-        "zu",
-        "dass",
-        "auch",
-        "aus",
-        "vor",
-        "es",
-        "kann",
-        "sich",
-        "sein",
-        "bzw",
-        "wie",
-        "wird",
-        "welche",
-        "ggf",
-        "zum",
-        "z.",
-        "B.",
-        "null",
-        "Null",
-        "z B"
-    ]
-
-    STOPWORDS.update(liste_der_unerwuenschten_woerter)
-    wordcloud = WordCloud(background_color="white", max_font_size=40, collocations=True).generate(text)
+    # STOPWORDS.update(liste_der_unerwuenschten_woerter), now manually removed from string
+    wordcloud = WordCloud(
+        background_color="white", max_font_size=40, collocations=True
+    ).generate(text)
     plt.figure(figsize=(12, 8))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
@@ -239,21 +133,155 @@ def plot_wordcloud(title, text):
     return
 
 
-def create_wordclouds(codebook_dict, survey_data, survey_group, numbers=[], question_number_list = group_three_word_entries):
+from HanTa import HanoverTagger as ht
+import collections
+
+hannover = ht.HanoverTagger("morphmodel_ger.pgz")
+
+manual_lemmata = {
+    "Sektorgekoppelt": "Sektorenkopplung",
+    "Sektorkopplung": "Sektorenkopplung",
+    "Flexibel": "Flexibilität",
+    "effizient": "Effizienz",
+    "Energien": "Energie",
+    "Carbon": "Co2",
+    "h2": "H2",
+    "Nachkaltigkeit": "nachhaltig",
+    "Wasserstoff": "H2",
+    "erneuerbar": "Erneuerbare",
+    "EE": "Erneuerbare",
+    "versorgungssich": "Versorgungssicherheit",
+    " re ": " regenerativ",
+    " E ": "Energie",
+    "pv": "PV",
+    "-": "",
+}
+
+liste_der_unerwuenschten_woerter = [
+    "sind",
+    "und",
+    "der",
+    "die",
+    "das",
+    "gleich" "oder",
+    "aber",
+    "für",
+    "ist",
+    "auf",
+    "bei",
+    "des",
+    "eine",
+    "um",
+    "bis",
+    "mit",
+    "von",
+    "durch",
+    "aus",
+    "werden",
+    "den",
+    "zur",
+    "als",
+    "in",
+    "im",
+    "zu",
+    "dass",
+    "auch",
+    "aus",
+    "vor",
+    "es",
+    "kann",
+    "sich",
+    "sein",
+    "bzw",
+    "wie",
+    "wird",
+    "welche",
+    "ggf",
+    "zum",
+    "z.",
+    "b.",
+    "z B",
+    "bsp",
+    "können",
+    "haben",
+    "müssen",
+    "so",
+    "ein",
+    "mich",
+    "nur",
+    "oder",
+    "ich",
+    "wir",
+    "vom",
+    "sollen",
+    "an",
+]
+
+liste_der_unerwuenschten_woerter += [
+    key.capitalize() for key in liste_der_unerwuenschten_woerter
+]
+
+
+def get_lemma(string_answers, number_of_most_common_words_displayed):
+    for key in [";", ",", ".", ":", "!", "%", "(", ")", "'", "=", "“"]:
+        string_answers = string_answers.replace(key, "")
+
+    for i in range(0, 6):
+        string_answers.replace("  ", " ")
+
+    wordlist = string_answers.split(" ")
+    wordlist = [ele for ele in wordlist if ele != []]
+
+    lemma_string = ""
+    # Find lemma, eg. Erneuerbare = Erneuerbar
+    for item in range(0, len(wordlist)):
+        wordlist[item] = hannover.analyze(wordlist[item])[0]
+        lemma_string += hannover.analyze(wordlist[item])[0] + " "
+
+    for key in manual_lemmata.keys():
+        lemma_string = lemma_string.replace(key, manual_lemmata[key])
+
+    for key in liste_der_unerwuenschten_woerter:
+        lemma_string = lemma_string.replace(f" {key} ", " ")
+
+    data = collections.Counter(
+        [ele for ele in lemma_string.split(" ") if ele != ""]
+    ).most_common(number_of_most_common_words_displayed)
+    data = pd.DataFrame.from_records(data, columns=["word", "count"])
+    data.plot.barh(x="word", y="count")
+    return lemma_string[:-1]
+
+
+def create_wordclouds(
+    codebook_dict,
+    survey_data,
+    survey_group,
+    numbers=[],
+    question_number_list=group_three_word_entries,
+    number_of_most_common_words_displayed=20,
+):
     for question_number in question_number_list:
         string_answers = ""
+        # Merge all string answers for seperate answer fields into one single string
         for field in range(0, len(codebook_dict[question_number][columns])):
             list_answers = survey_data[
                 [codebook_dict[question_number][columns][field]]
             ].values
-            string_answers += "".join(str(x) for x in list_answers)
+            for x in list_answers:
+                if x not in EXCLUDE_CODES:
+                    string_answers += " " + str(x[0])
 
         title = f"{survey_group}:\n {codebook_dict[question_number][question][:-20]}"
-        plot_wordcloud(title, string_answers)
+
+        lemma_string = get_lemma(string_answers, number_of_most_common_words_displayed)
+
+        plot_wordcloud(title, lemma_string)
 
         message_data_received(codebook_dict, question_number)
+
         if numbers != []:
             numbers.remove(question_number)
+
     return numbers
 
 
