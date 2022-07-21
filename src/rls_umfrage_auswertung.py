@@ -121,17 +121,48 @@ def plot_wordcloud(title, text):
     replacing = {
         "99": "",
         "'": "",
-        "Erneuerbare Energien": "Erneuerbare",
-        "Erneuerbare Energie": "Erneuerbare",
-        "EE": "Erneuerbare",
-        "erneuerbar": "Erneuerbare",
+        "66": "",
+        "sektor": "Sektor",
+        "Sektorgekoppelt": "Sektorenkopplung",
+        "Sektorkopplung": "Sektorenkopplung",
+        "regenerativ": "Regenerativ",
+        "Regenerativen": "Regenerativ",
+        "flex": "Flex",
+        "effizient": "Effizienz",
+        "Regenerative Energien": "Erneuerbar",
+        "emission": "Emission",
+        "Carbon": "CO2",
+        "Co2": "CO2",
+        "h2": "H2",
+        "grüner":"grün",
+        "grüne": "grün",
+        "grün": "nachhaltig",
+        "Nachkaltigkeit": "nachhaltig",
+        "Wasserstoff": "H2",
+        "Quellen": "Ressourcen",
+        "erneuerbar": "Erneuerbar",
+        "Erneuerbaren": "Erneuerbar",
+        "Erneuerbarer": "Erneuerbar",
+        "Erneuerbare": "Erneuerbar",
+        "erneuerbaren": "Erneuerbar",
+        "EE": "Erneuerbar",
+        "dezentral": "Dezentral",
+        "Dezentraler": "Dezentral",
         "Dezentrale": "Dezentral",
-        "dezentrale": "Dezentral",
         "fossilen": "fossile",
         "fossiler": "fossile",
+        "mehr": "viel",
+        "viele": "viel",
         "keine": "kein",
+        "Keine": "kein",
         "aller": "alle",
         "allen": "alle",
+        "kein": "ohne",
+        "Kein": "ohne",
+        "frei": "ohne",
+        "nicht": "ohne",
+        "Energien": "Energie",
+        "Ausstoß": "Emissionen",
     }
 
     for key in replacing.keys():
@@ -139,6 +170,7 @@ def plot_wordcloud(title, text):
 
     # Compare also: https://www.python-lernen.de/wordcloud-erstellen-python.htm
     liste_der_unerwuenschten_woerter = [
+        "sind",
         "und",
         "der",
         "die",
@@ -151,6 +183,7 @@ def plot_wordcloud(title, text):
         "bei",
         "des",
         "eine",
+        "um",
         "bis",
         "in",
         "mit",
@@ -177,11 +210,17 @@ def plot_wordcloud(title, text):
         "wie",
         "wird",
         "welche",
+        "ggf",
+        "zum",
+        "z.",
+        "B.",
+        "null",
+        "Null",
     ]
 
     STOPWORDS.update(liste_der_unerwuenschten_woerter)
-    wordcloud = WordCloud(background_color="white", max_font_size=40).generate(text)
-    plt.figure()
+    wordcloud = WordCloud(background_color="white", max_font_size=40, collocations=True).generate(text)
+    plt.figure(figsize=(12, 8))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
     plt.title(title)
