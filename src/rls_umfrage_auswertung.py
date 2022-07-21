@@ -115,7 +115,6 @@ def evaluating_with_codebook(codebook_dict):
 
 from wordcloud import WordCloud, STOPWORDS
 
-
 def plot_wordcloud(title, text):
     # Manual linting
     replacing = {
@@ -125,11 +124,16 @@ def plot_wordcloud(title, text):
         "sektor": "Sektor",
         "Sektorgekoppelt": "Sektorenkopplung",
         "Sektorkopplung": "Sektorenkopplung",
+        "Sektoren": "Sektor",
+        "Netto": "Bilanz",
         "regenerativ": "Regenerativ",
         "Regenerativen": "Regenerativ",
         "flex": "Flex",
+        "Flexbilen": "Flexibilität",
+        "Flexibel": "Flexibilität",
         "effizient": "Effizienz",
-        "Regenerative Energien": "Erneuerbar",
+        "Energien": "Energie",
+        "Regenerative Energie": "Erneuerbar",
         "emission": "Emission",
         "Carbon": "CO2",
         "Co2": "CO2",
@@ -144,6 +148,7 @@ def plot_wordcloud(title, text):
         "Erneuerbaren": "Erneuerbar",
         "Erneuerbarer": "Erneuerbar",
         "Erneuerbare": "Erneuerbar",
+        "Erneuerbar Energie": "Erneuerbar",
         "erneuerbaren": "Erneuerbar",
         "EE": "Erneuerbar",
         "dezentral": "Dezentral",
@@ -151,6 +156,7 @@ def plot_wordcloud(title, text):
         "Dezentrale": "Dezentral",
         "fossilen": "fossile",
         "fossiler": "fossile",
+        "versorgungssicher": "Versorgungssicherheit",
         "mehr": "viel",
         "viele": "viel",
         "keine": "kein",
@@ -160,8 +166,11 @@ def plot_wordcloud(title, text):
         "kein": "ohne",
         "Kein": "ohne",
         "frei": "ohne",
+        "Frei": "ohne",
+        "Digitale": "Digitalisierung",
+        "geringer": "wenig",
+        "gering": "wenig",
         "nicht": "ohne",
-        "Energien": "Energie",
         "Ausstoß": "Emissionen",
     }
 
@@ -175,6 +184,7 @@ def plot_wordcloud(title, text):
         "der",
         "die",
         "das",
+        "gleich"
         "oder",
         "aber",
         "für",
@@ -216,6 +226,7 @@ def plot_wordcloud(title, text):
         "B.",
         "null",
         "Null",
+        "z B"
     ]
 
     STOPWORDS.update(liste_der_unerwuenschten_woerter)
