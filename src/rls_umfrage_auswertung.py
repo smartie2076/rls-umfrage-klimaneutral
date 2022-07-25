@@ -40,7 +40,7 @@ group_need_to_catch_up = [17, 18, 19, 20, 23, 24, 25, 28, 29, 30, 31, 32, 33]
 EXCLUDE_CODES = [-77, -99, -66, 0, "0", "-66", "-99", "-77"]
 
 
-def main_preprocessing_codebook():
+def main_preprocessing_codebook(display_codebook = False):
     codebook_csv = pd.read_csv(
         f"{results}/{codebook_file}{suffix}",
         delimiter=";",
@@ -70,7 +70,8 @@ def main_preprocessing_codebook():
 
     logging.info(f"Following questions are not assessed: {numbers}")
 
-    pprint.pprint(codebook_dict)
+    if display_codebook is True:
+        pprint.pprint(codebook_dict)
 
     return codebook_dict
 
