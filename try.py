@@ -16,7 +16,7 @@ def main():
         header=2,
     )
     rls_umfrage_auswertung.create_stacked_bar_chart_percent(
-        survey_data, codebook_dict, question_number=31b
+        survey_data, codebook_dict, question_number=31
     )
 
 
