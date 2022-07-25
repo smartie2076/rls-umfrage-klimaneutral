@@ -252,6 +252,55 @@ def get_lemma(string_answers, number_of_most_common_words_displayed):
     return lemma_string[:-1]
 
 
+def create_stacked_bar_chart_percent(data, codebook, question_number):
+    data_to_plot = {}
+
+    codes_identical = True
+    for sub in codebook[question_number][subquestion]:
+        if sub == 1:
+            codes = codebook[question_number][subquestion][sub][m_options]
+        # Make sure you always have the same options
+        if codebook[question_number][subquestion][sub][m_options] != codes:
+            codes_identical = False
+        try:
+            data_to_plot.update(
+                {
+                    codebook[question_number][subquestion][sub][question]: [
+                        np.nan if x in EXCLUDE_CODES else x
+                        for x in data[
+                            codebook[question_number][subquestion][sub][columns]
+                        ].values
+                    ]
+                }
+            )
+        except:
+            print(
+                f"Values for '{codebook[question_number][subquestion][sub][question]}' could not be fetched from {codebook[question_number][subquestion][sub][columns]}."
+            )
+            pass
+
+    # Count number of occurrences of multiple-choice options
+    data_to_plot = pd.DataFrame(data_to_plot).apply(pd.value_counts)
+    # Calculate percentage of votes
+    data_to_plot = data_to_plot.div(data_to_plot.sum(axis=0), axis=1)
+    # Only change index if the labels are actually identical
+    if codes_identical is True:
+        as_list = data_to_plot.index.tolist()
+        as_list = [str(int(x)) for x in as_list]
+        data_to_plot.index = as_list
+        data_to_plot.rename(index=codes, inplace=True)
+        data_to_plot = data_to_plot.sort_values(by=codes["1"], axis=1, ascending=True)
+        print(data_to_plot)
+        data_to_plot = data_to_plot.T
+        data_to_plot.plot.barh(
+            stacked=True, title=codebook[question_number][question], mark_right=True
+        )
+        plt.show()
+    else:
+        print(codes)
+        print(data_to_plot)
+
+
 def create_wordclouds(
     codebook_dict,
     survey_data,
