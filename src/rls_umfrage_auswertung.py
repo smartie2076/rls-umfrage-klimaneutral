@@ -164,7 +164,8 @@ liste_der_unerwuenschten_woerter = [
     "der",
     "die",
     "das",
-    "gleich" "oder",
+    "gleich",
+    "oder",
     "aber",
     "für",
     "ist",
@@ -216,6 +217,18 @@ liste_der_unerwuenschten_woerter = [
     "vom",
     "sollen",
     "an",
+    "alle",
+    "nicht"
+    "kein",
+    "viel",
+    "wenig",
+    "groß",
+    "klein",
+    "aller",
+    "oft",
+    "selten",
+    "kurz",
+    "lang"
 ]
 
 liste_der_unerwuenschten_woerter += [
@@ -231,13 +244,15 @@ def get_lemma(string_answers, number_of_most_common_words_displayed):
         string_answers.replace("  ", " ")
 
     wordlist = string_answers.split(" ")
-    wordlist = [ele for ele in wordlist if ele != []]
+    wordlist = [ele for ele in wordlist if len(ele)>0]
 
     lemma_string = ""
     # Find lemma, eg. Erneuerbare = Erneuerbar
     for item in range(0, len(wordlist)):
-        wordlist[item] = hannover.analyze(wordlist[item])[0]
-        lemma_string += hannover.analyze(wordlist[item])[0] + " "
+        stem = hannover.analyze(wordlist[item])[0]
+        if not stem in liste_der_unerwuenschten_woerter:
+            wordlist[item] = stem
+            lemma_string += stem + " "
 
     for key in manual_lemmata.keys():
         lemma_string = lemma_string.replace(key, manual_lemmata[key])
@@ -333,6 +348,32 @@ def create_wordclouds(
             numbers.remove(question_number)
 
     return numbers
+
+
+def create_wordcloud(
+    codebook_dict,
+    survey_data,
+    question_number_list=group_three_word_entries,
+    number_of_most_common_words_displayed=20,
+):
+    for question_number in question_number_list:
+        string_answers = ""
+        list_answers = survey_data[
+            [codebook_dict[question_number][columns]]
+        ].values
+        for x in list_answers:
+            if x not in EXCLUDE_CODES:
+                    string_answers += " " + str(x[0])
+
+        title = str(codebook_dict[question_number][question][:-20])
+
+        lemma_string = get_lemma(string_answers, number_of_most_common_words_displayed)
+
+        plot_wordcloud(title, lemma_string)
+
+        message_data_received(codebook_dict, question_number)
+
+    return
 
 
 def get_codebook_for_question(codebook, codebook_dict, question_number, row):
